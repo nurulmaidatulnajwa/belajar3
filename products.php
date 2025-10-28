@@ -7,7 +7,7 @@ if (!isset($_SESSION['id_karyawan'])) {
     exit();
 }
 
-// Fungsi untuk merapikan ID produk
+// Fungsi merapikan ID produk
 function renumberProductIDs($conn, $tableName = 'produk') {
     $sql = "SELECT id_produk FROM $tableName ORDER BY id_produk ASC";
     $result = $conn->query($sql);
@@ -30,6 +30,11 @@ function renumberProductIDs($conn, $tableName = 'produk') {
 // ---- Hapus Produk ----
 if (isset($_GET['hapus'])) {
     $id = $_GET['hapus'];
+    // hapus gambar dari folder
+    $gambar = mysqli_fetch_assoc(mysqli_query($conn, "SELECT gambar FROM produk WHERE id_produk='$id'"))['gambar'];
+    if ($gambar && file_exists("uploads/$gambar")) {
+        unlink("uploads/$gambar");
+    }
     mysqli_query($conn, "DELETE FROM produk WHERE id_produk = '$id'");
     renumberProductIDs($conn, 'produk');
     header("Location: products.php");
@@ -42,9 +47,27 @@ if (isset($_POST['tambah'])) {
     $harga = $_POST['harga'];
     $stok  = $_POST['stok'];
     $tanggal = date('Y-m-d');
+    $gambar = '';
 
-    $query = "INSERT INTO produk (nama_produk, harga, stok, tanggal_update)
-              VALUES ('$nama', '$harga', '$stok', '$tanggal')";
+    // Proses upload gambar
+    if (!empty($_FILES['gambar']['name'])) {
+        $targetDir = "uploads/";
+        $gambar = basename($_FILES["gambar"]["name"]);
+        $targetFilePath = $targetDir . $gambar;
+
+        // Validasi tipe file
+        $fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
+        $allowTypes = array('jpg', 'jpeg', 'png', 'gif');
+
+        if (in_array($fileType, $allowTypes)) {
+            move_uploaded_file($_FILES["gambar"]["tmp_name"], $targetFilePath);
+        } else {
+            echo "<script>alert('Hanya file JPG, JPEG, PNG, atau GIF yang diperbolehkan!');</script>";
+        }
+    }
+
+    $query = "INSERT INTO produk (nama_produk, harga, stok, tanggal_update, gambar)
+              VALUES ('$nama', '$harga', '$stok', '$tanggal', '$gambar')";
     mysqli_query($conn, $query);
     renumberProductIDs($conn, 'produk');
     header("Location: products.php");
@@ -53,6 +76,7 @@ if (isset($_POST['tambah'])) {
 
 $result = mysqli_query($conn, "SELECT * FROM produk");
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -84,18 +108,12 @@ $result = mysqli_query($conn, "SELECT * FROM produk");
 
         .logo {
             width: 120px;
-            height: auto;
             border-radius: 10px;
         }
 
         .sidebar ul {
             list-style: none;
             padding: 0;
-            width: 100%;
-        }
-
-        .sidebar ul li {
-            width: 100%;
         }
 
         .sidebar ul li a {
@@ -116,7 +134,6 @@ $result = mysqli_query($conn, "SELECT * FROM produk");
             width: 100%;
         }
 
-        /* Topbar bagian atas */
         .topbar {
             display: flex;
             justify-content: space-between;
@@ -124,8 +141,8 @@ $result = mysqli_query($conn, "SELECT * FROM produk");
             background: white;
             padding: 15px 25px;
             border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             color: #007bff;
         }
 
@@ -136,21 +153,19 @@ $result = mysqli_query($conn, "SELECT * FROM produk");
             border-radius: 6px;
             text-decoration: none;
             font-weight: bold;
-            transition: background 0.3s;
         }
 
         .logout-btn:hover {
             background-color: #b02a37;
         }
 
-        /* Form tambah produk */
         .form-tambah {
             background: white;
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
             width: 100%;
-            max-width: 915px;
+            max-width: 920px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
@@ -175,6 +190,20 @@ $result = mysqli_query($conn, "SELECT * FROM produk");
             background: #218838;
         }
 
+        table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        table th, table td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
         .aksi a {
             margin-right: 8px;
             text-decoration: none;
@@ -185,6 +214,13 @@ $result = mysqli_query($conn, "SELECT * FROM produk");
 
         .edit { background-color: #ffc107; }
         .hapus { background-color: #dc3545; }
+
+        img.produk-img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -203,7 +239,6 @@ $result = mysqli_query($conn, "SELECT * FROM produk");
 </div>
 
 <div class="main-content">
-    <!-- Tambahkan topbar -->
     <div class="topbar">
         <h1>Daftar Produk</h1>
         <a href="logout.php" class="logout-btn">Logout</a>
@@ -211,7 +246,7 @@ $result = mysqli_query($conn, "SELECT * FROM produk");
 
     <!-- Form Tambah Produk -->
     <div class="form-tambah">
-        <form method="POST" action="">
+        <form method="POST" action="" enctype="multipart/form-data">
             <label>Nama Produk</label>
             <input type="text" name="nama_produk" required>
 
@@ -221,6 +256,9 @@ $result = mysqli_query($conn, "SELECT * FROM produk");
             <label>Stok</label>
             <input type="number" name="stok" required>
 
+            <label>Foto Produk</label>
+            <input type="file" name="gambar" accept="image/*">
+
             <button type="submit" name="tambah">Tambah Produk</button>
         </form>
     </div>
@@ -228,8 +266,9 @@ $result = mysqli_query($conn, "SELECT * FROM produk");
     <!-- Tabel Produk -->
     <table border="1">
         <tr>
-            <th>ID Produk</th>
+            <th>ID</th>
             <th>Nama Produk</th>
+            <th>Gambar</th>
             <th>Harga</th>
             <th>Stok</th>
             <th>Tanggal Update</th>
@@ -239,6 +278,13 @@ $result = mysqli_query($conn, "SELECT * FROM produk");
             <tr>
                 <td><?= $row['id_produk'] ?></td>
                 <td><?= $row['nama_produk'] ?></td>
+                <td>
+                    <?php if (!empty($row['gambar'])) { ?>
+                        <img src="uploads/<?= $row['gambar'] ?>" class="produk-img">
+                    <?php } else { ?>
+                        <span style="color:#aaa;">(tidak ada gambar)</span>
+                    <?php } ?>
+                </td>
                 <td>Rp <?= number_format($row['harga'], 0, ',', '.') ?></td>
                 <td><?= $row['stok'] ?></td>
                 <td><?= $row['tanggal_update'] ?></td>

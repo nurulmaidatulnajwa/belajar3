@@ -9,9 +9,10 @@
       margin: 0;
       font-family: 'Poppins', sans-serif;
       background-color: #f4f6f9;
+      scroll-behavior: smooth;
     }
 
-    /* NAVBAR */
+    /* ===== NAVBAR ===== */
     .navbar {
       display: flex;
       justify-content: space-between;
@@ -22,6 +23,7 @@
       position: sticky;
       top: 0;
       z-index: 10;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
     }
 
     .navbar .logo {
@@ -33,6 +35,7 @@
     .navbar .logo img {
       width: 45px;
       height: 45px;
+      border-radius: 10px;
     }
 
     .navbar h1 {
@@ -73,75 +76,89 @@
       background: #f1f1f1;
     }
 
-   /* HERO SECTION */
-.hero {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 90vh;
-  color: white;
-  text-align: center;
-  background: url('gambar toko.jpg') no-repeat center center/cover;
-  position: relative;
-}
+    /* ===== HERO ===== */
+    .hero {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 90vh;
+      color: white;
+      text-align: center;
+      background: url('mn.jpg') no-repeat center center/cover;
+      position: relative;
+      animation: fadeIn 1.5s ease-in;
+    }
 
-.hero::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.55); /* efek gelap supaya teks terlihat jelas */
-  z-index: 0;
-}
+    .hero::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 0;
+    }
 
-.hero-content {
-  position: relative;
-  z-index: 1;
-  max-width: 700px;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  backdrop-filter: blur(5px);
-}
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 700px;
+      padding: 25px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      backdrop-filter: blur(5px);
+      animation: slideUp 1s ease-out;
+    }
 
-.hero-content h2 {
-  font-size: 42px;
-  font-weight: bold;
-  margin-bottom: 15px;
-}
+    .hero-content h2 {
+      font-size: 42px;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
 
-.hero-content p {
-  font-size: 18px;
-  margin-bottom: 20px;
-}
+    .hero-content p {
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
 
-.hero-content a {
-  background: #00bfff;
-  color: white;
-  padding: 12px 25px;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 600;
-  transition: 0.3s;
-}
+    .hero-content a {
+      background: #00bfff;
+      color: white;
+      padding: 12px 25px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: 0.3s;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    }
 
-.hero-content a:hover {
-  background: #007bff;
-}
+    .hero-content a:hover {
+      background: #007bff;
+      transform: scale(1.05);
+    }
 
-
-    /* PRODUK UNGGULAN */
+    /* ===== PRODUK UNGGULAN ===== */
     .products {
       text-align: center;
-      padding: 60px 10%;
+      padding: 80px 10%;
     }
 
     .products h2 {
       color: #007bff;
-      font-size: 28px;
+      font-size: 30px;
       margin-bottom: 40px;
+      position: relative;
+    }
+
+    .products h2::after {
+      content: "";
+      width: 80px;
+      height: 4px;
+      background: #00bfff;
+      display: block;
+      margin: 10px auto 0;
+      border-radius: 5px;
     }
 
     .product-grid {
@@ -153,13 +170,15 @@
     .product-card {
       background: white;
       border-radius: 12px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       padding: 20px;
-      transition: transform 0.3s;
+      transition: all 0.3s;
+      animation: fadeIn 1s ease-in;
     }
 
     .product-card:hover {
-      transform: translateY(-8px);
+      transform: translateY(-10px);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.2);
     }
 
     .product-card img {
@@ -179,10 +198,54 @@
       font-size: 14px;
     }
 
-    /* ABOUT */
-    .about {
+    /* ===== MENGAPA PILIH KAMI ===== */
+    .why-us {
       background: #f8fbff;
-      padding: 60px 10%;
+      text-align: center;
+      padding: 70px 10%;
+    }
+
+    .why-us h2 {
+      color: #007bff;
+      margin-bottom: 40px;
+      font-size: 28px;
+    }
+
+    .why-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 25px;
+    }
+
+    .why-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 250px;
+      padding: 25px;
+      transition: all 0.3s;
+    }
+
+    .why-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .why-card img {
+      width: 100px;
+      height: 80px;
+      margin-bottom: 10px;
+    }
+
+    .why-card h4 {
+      color: #007bff;
+      margin-bottom: 8px;
+    }
+
+    /* ===== ABOUT ===== */
+    .about {
+      background: white;
+      padding: 70px 10%;
       text-align: center;
     }
 
@@ -199,7 +262,7 @@
       color: #333;
     }
 
-    /* FOOTER */
+    /* ===== FOOTER ===== */
     footer {
       background: #007bff;
       color: white;
@@ -217,6 +280,16 @@
     footer a:hover {
       text-decoration: underline;
     }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeIn {
+      from {opacity: 0;}
+      to {opacity: 1;}
+    }
+    @keyframes slideUp {
+      from {transform: translateY(40px); opacity: 0;}
+      to {transform: translateY(0); opacity: 1;}
+    }
   </style>
 </head>
 <body>
@@ -229,8 +302,8 @@
     </div>
     <ul>
       <li><a href="#home">Home</a></li>
-      <li><a href="#produk">Produk</a></li>
-      <li><a href="#tentang">Tentang</a></li>
+      <li><a href="#produk">Products</a></li>
+      <li><a href="#tentang">About</a></li>
     </ul>
     <a href="login.php" class="login-btn">Login</a>
   </nav>
@@ -264,6 +337,28 @@
         <img src="laptop.jpg" alt="Laptop">
         <h3>Laptop</h3>
         <p>Desain elegan dengan layar 14 inci Full HD.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MENGAPA PILIH KAMI -->
+  <section class="why-us">
+    <h2>Mengapa Memilih Kami?</h2>
+    <div class="why-grid">
+      <div class="why-card">
+        <img src="kualitas.jpeg" alt="Kualitas">
+        <h4>Kualitas Terbaik</h4>
+        <p>Produk bergaransi resmi dan berkualitas premium.</p>
+      </div>
+      <div class="why-card">
+        <img src="harga.jpeg" alt="Harga">
+        <h4>Harga Bersaing</h4>
+        <p>Dapatkan harga terbaik untuk setiap produk.</p>
+      </div>
+      <div class="why-card">
+        <img src="pelayanan.jpg" alt="Pelayanan">
+        <h4>Pelayanan Cepat</h4>
+        <p>Respon cepat dan dukungan pelanggan ramah.</p>
       </div>
     </div>
   </section>

@@ -136,3 +136,20 @@ th, td {
 .logout-btn:hover {
   background-color: #b02a37;
 }
+
+.home-btn {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 8px 15px;
+  background: linear-gradient(135deg, #6c757d, #495057);
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+.home-btn:hover {
+  background: linear-gradient(135deg, #5a6268, #343a40);
+  transform: scale(1.05);
+}

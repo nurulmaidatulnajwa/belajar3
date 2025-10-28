@@ -1,24 +1,49 @@
-<?php
+<<?php
 include 'db.php';
 $id = $_GET['id'];
 $data = mysqli_query($conn, "SELECT * FROM produk WHERE id_produk='$id'");
 $row = mysqli_fetch_assoc($data);
 
 if (isset($_POST['update'])) {
-  $nama = $_POST['nama_produk'];
-  $harga = $_POST['harga'];
-  $stok = $_POST['stok'];
-  $tanggal = date('Y-m-d');
+    $nama = $_POST['nama_produk'];
+    $harga = $_POST['harga'];
+    $stok = $_POST['stok'];
+    $tanggal = date('Y-m-d');
 
-  mysqli_query($conn, "UPDATE produk SET 
-                      nama_produk='$nama', 
-                      harga='$harga', 
-                      stok='$stok', 
-                      tanggal_update='$tanggal' 
-                      WHERE id_produk='$id'");
-  header("Location: products.php");
+    // --- proses upload gambar ---
+    $gambarLama = $row['gambar']; // ambil gambar lama
+    $gambarBaru = $_FILES['gambar']['name'];
+    $targetDir = "uploads/";
+    $targetFilePath = $targetDir . basename($gambarBaru);
+
+    if (!empty($gambarBaru)) {
+        // hapus gambar lama jika ada
+        if (file_exists($targetDir . $gambarLama) && $gambarLama != "") {
+            unlink($targetDir . $gambarLama);
+        }
+        // upload gambar baru
+        move_uploaded_file($_FILES["gambar"]["tmp_name"], $targetFilePath);
+        $gambarFinal = $gambarBaru;
+    } else {
+        // jika tidak ada upload baru, pakai gambar lama
+        $gambarFinal = $gambarLama;
+    }
+
+    // update data ke database
+    mysqli_query($conn, "UPDATE produk SET 
+        nama_produk='$nama',
+        harga='$harga',
+        stok='$stok',
+        gambar='$gambarFinal',
+        tanggal_update='$tanggal'
+        WHERE id_produk='$id'
+    ");
+
+    header("Location: products.php");
+    exit();
 }
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>

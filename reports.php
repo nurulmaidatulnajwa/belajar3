@@ -1,6 +1,7 @@
 <?php
 session_start();
 include 'db.php';
+include 'sidebar.php';
 
 // Cek login
 if (!isset($_SESSION['id_karyawan'])) {
@@ -48,88 +49,117 @@ $total = mysqli_fetch_assoc($total_query)['total'] ?? 0;
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      background: #f4f6f9;
+      background: linear-gradient(135deg, #eaf1ff, #f8fbff); /* Consistent background */
       margin: 0;
       display: flex;
+      color: #333; /* Consistent text color */
     }
 
     .main-content {
-      margin-left: 250px;
+      margin-left: 260px; /* Adjusted to match products page */
       padding: 40px;
-      width: calc(100% - 250px);
+      width: calc(100% - 260px); /* Adjusted to match products page */
+      animation: fadeIn 0.7s ease; /* Added fade-in animation */
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .header-box {
-      background: white;
-      border-radius: 12px;
+      background: linear-gradient(90deg, #4e69a3ff, #5c85a6ff);
+      backdrop-filter: blur(10px);
+      border-radius: 15px; /* Consistent rounded corners */
       padding: 20px 25px;
       margin-bottom: 25px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Consistent shadow */
       display: flex;
       justify-content: space-between;
       align-items: center;
+      color: #f8f9faff; /* Consistent text color */
     }
 
     .header-box h1 {
-      color: #007bff;
+      color: #f8fafcff; /* Consistent header color */
       margin: 0;
       font-size: 26px;
+      font-weight: 700; /* Make the font bolder */
     }
 
     .filter-form {
-      background: white;
-      border-radius: 10px;
+      background: rgba(255,255,255,0.8); /* Adjusted background with blur */
+      backdrop-filter: blur(12px);
+      border-radius: 15px; /* Consistent rounded corners */
       padding: 15px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Consistent shadow */
       margin-bottom: 20px;
       display: flex;
       align-items: center;
       gap: 10px;
       flex-wrap: wrap;
+      border-left: 6px solid #2f639b; /* Added border */
     }
 
     .filter-form input {
-      padding: 8px;
-      border-radius: 6px;
+      padding: 10px; /* Increased padding for better appearance */
+      border-radius: 10px; /* Consistent rounded corners */
       border: 1px solid #ccc;
+      transition: border-color 0.3s ease; /* Added transition for focus effect */
+    }
+
+    .filter-form input:focus {
+      border-color: #2f639b; /* Change border color on focus */
+      outline: none; /* Remove default focus outline */
+      box-shadow: 0 0 5px rgba(47, 99, 155, 0.3); /* Add a subtle shadow on focus */
     }
 
     .filter-form button {
-      background: #007bff;
+     background: linear-gradient(90deg, #0f8e5fff, #0e6f20ff);
       color: white;
       border: none;
-      padding: 8px 14px;
-      border-radius: 6px;
+      padding: 10px 20px; /* Increased padding to match products page */
+      border-radius: 10px; /* Consistent rounded corners */
       cursor: pointer;
-      font-weight: bold;
+      font-weight: 600; /* Make the font bolder */
+      transition: background-color 0.3s ease; /* Smooth transition for hover effect */
     }
 
     .filter-form button:hover {
-      background: #0056b3;
+      background: linear-gradient(90deg, #0f8e5fff, #0e6f20ff);
+      transform: scale(1.05); /* Added scale effect for better feedback */
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      background: white;
-      border-radius: 10px;
+      background: linear-gradient(90deg, #4e69a3ff, #5c85a6ff);
+      backdrop-filter: blur(12px);
+      border-radius: 15px; /* Consistent rounded corners */
       overflow: hidden;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Consistent shadow */
+      border-left: 6px solid #2f639b; /* Added border */
     }
 
     th, td {
-      padding: 10px;
+      padding: 15px; /* Increased padding for better readability */
       border: 1px solid #ddd;
       text-align: center;
     }
 
     th {
-      background: #007bff;
+      background: linear-gradient(90deg, #4e69a3ff, #5c85a6ff); /* Consistent gradient */
       color: white;
+      font-weight: 600; /* Make the font bolder */
     }
 
     tr:nth-child(even) {
-      background: #f9f9f9;
+      background: #f3f7ff; /* Consistent background color for even rows */
+    }
+
+    tbody tr:hover {
+      background: #e2edff;
+      transition: all 0.3s ease;
     }
 
     .total {
@@ -137,22 +167,23 @@ $total = mysqli_fetch_assoc($total_query)['total'] ?? 0;
       margin-top: 15px;
       font-size: 18px;
       font-weight: bold;
-      color: #007bff;
+      color: #2f639b; /* Consistent color */
     }
 
     .print-btn {
-      background: #28a745;
+      background: linear-gradient(90deg, #28a745, #3cb371); /* Green gradient for print button */
       color: white;
-      padding: 8px 14px;
-      border-radius: 6px;
+      padding: 10px 20px; /* Adjusted padding to match products page */
+      border-radius: 10px; /* Consistent rounded corners */
       border: none;
       cursor: pointer;
-      font-weight: bold;
-      margin-top: 10px;
+      font-weight: 600; /* Make the font bolder */
+      transition: background-color 0.3s ease; /* Smooth transition for hover effect */
     }
 
     .print-btn:hover {
-      background: #218838;
+      background: linear-gradient(90deg, #3cb371, #28a745); /* Adjusted gradient on hover */
+      transform: scale(1.05); /* Added scale effect for better feedback */
     }
   </style>
 </head>
@@ -177,16 +208,17 @@ $total = mysqli_fetch_assoc($total_query)['total'] ?? 0;
 
     <table>
       <tr>
-        <th>ID</th>
+        <th>No</th>
         <th>Tanggal</th>
         <th>Total Harga</th>
         <th>Kasir</th>
       </tr>
       <?php if (mysqli_num_rows($result) > 0): ?>
+        <?php $no = 1; // INISIALISASI COUNTER ?>
         <?php while ($row = mysqli_fetch_assoc($result)): ?>
           <tr>
-            <td><?= $row['id']; ?></td>
-            <td><?= $row['tanggal']; ?></td>
+                        <td><?= $no++; ?></td>
+            <td><?= date("d-m-Y", strtotime($row['tanggal'])); ?></td>
             <td>Rp <?= number_format($row['total_harga'], 0, ',', '.'); ?></td>
             <td><?= $row['nama_karyawan']; ?></td>
           </tr>

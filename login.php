@@ -12,13 +12,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($result && mysqli_num_rows($result) == 1) {
         $row = mysqli_fetch_assoc($result);
-
-        // Jika password sama persis (tanpa hash)
         if ($password === $row['password']) {
-            // Simpan data karyawan ke session
             $_SESSION['id_karyawan'] = $row['id_karyawan'];
             $_SESSION['nama_karyawan'] = $row['nama_karyawan'];
-
+            $_SESSION['jabatan'] = $row['jabatan'];
             header("Location: dashboard.php");
             exit();
         } else {
@@ -37,6 +34,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Toko Elektronik</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Tambahkan link Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
   <style>
     * { font-family: 'Poppins', sans-serif; box-sizing: border-box; }
     body {
@@ -76,10 +76,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       box-shadow: 0 0 12px rgba(255,255,255,0.4);
     }
     h2 { margin-bottom: 15px; color: #fff; font-size: 22px; font-weight: 600; }
-    input {
+
+    .input-group {
+      position: relative;
       width: 90%;
-      padding: 10px;
-      margin: 8px 0;
+      margin: 8px auto;
+    }
+    .input-group input {
+      width: 100%;
+      padding: 10px 38px 10px 10px; /* ruang kanan untuk ikon mata */
       border-radius: 8px;
       border: none;
       background: rgba(255, 255, 255, 0.9);
@@ -87,11 +92,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       outline: none;
       transition: 0.2s;
     }
-    input:focus { box-shadow: 0 0 4px #007bff; }
-    button {
+    .input-group input:focus { box-shadow: 0 0 4px #2f639bff; }
+
+    /* ikon mata */
+    .toggle-password {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+      color: #555;
+      outline: none;
+    }
+    .toggle-password:hover { color: #2f639bff; }
+
+    button[type="submit"] {
       width: 95%;
       padding: 10px;
-      background: linear-gradient(135deg, #007bff, #00b7ff);
+      background: linear-gradient(135deg, #2f639bff, #2d86a4ff);
       border: none;
       border-radius: 8px;
       color: white;
@@ -101,10 +122,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       transition: all 0.3s;
       margin-top: 5px;
     }
-    button:hover {
-      background: linear-gradient(135deg, #0062cc, #008cff);
-      transform: scale(1.03);
-    }
+    button[type="submit"]:hover { transform: scale(1.03); }
+
     .error {
       color: #ff5555;
       margin-top: 10px;
@@ -115,11 +134,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       display: inline-block;
       animation: fadeIn 0.5s ease;
     }
+
     @keyframes fadeIn { from {opacity: 0; transform: translateY(-5px);} to {opacity: 1; transform: translateY(0);} }
     @keyframes slideUp { from {opacity: 0; transform: translateY(50px);} to {opacity: 1; transform: translateY(0);} }
+
     .footer-text { margin-top: 10px; color: #ddd; font-size: 11px; opacity: 0.8; }
 
-     .home-btn {
+    .home-btn {
       display: inline-block;
       margin-top: 10px;
       padding: 8px 15px;
@@ -135,16 +156,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       background: linear-gradient(135deg, #5a6268, #343a40);
       transform: scale(1.05);
     }
-
   </style>
 </head>
 <body>
   <div class="login-container">
     <img src="nm.png" alt="Logo Toko Elektronik">
     <h2>Login</h2>
+
     <form method="POST" action="">
-      <input type="text" name="username" placeholder="Username" required>
-      <input type="password" name="password" placeholder="Password" required>
+      <div class="input-group">
+        <input type="text" name="username" placeholder="Username" required>
+      </div>
+
+      <div class="input-group">
+        <input type="password" name="password" id="password" placeholder="Password" required>
+        <button type="button" class="toggle-password" onclick="togglePassword()">
+          <i class="fa-solid fa-eye" id="eyeIcon"></i>
+        </button>
+      </div>
+
       <button type="submit" name="login">LOGIN</button>
     </form>
 
@@ -152,14 +182,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       <p class="error"><?= $error; ?></p>
     <?php endif; ?>
 
-        <p class="footer-text">© Toko MiNa Techno</p>
-    <p style="margin-top:10px;">
-      Belum punya akun? <a href="register.php">Daftar di sini</a>
-    </p>
-
-    <!-- Tombol kembali ke beranda -->
+    <p class="footer-text">© Toko MiNa Techno</p>
+    <p style="margin-top:10px;">Belum punya akun? <a href="register.php">Daftar di sini</a></p>
     <a href="index.php" class="home-btn">← Kembali ke Beranda</a>
-
   </div>
+
+  <script>
+    function togglePassword() {
+      const password = document.getElementById("password");
+      const eyeIcon = document.getElementById("eyeIcon");
+
+      if (password.type === "password") {
+        password.type = "text";
+        eyeIcon.classList.remove("fa-eye");
+        eyeIcon.classList.add("fa-eye-slash");
+      } else {
+        password.type = "password";
+        eyeIcon.classList.remove("fa-eye-slash");
+        eyeIcon.classList.add("fa-eye");
+      }
+    }
+  </script>
 </body>
 </html>

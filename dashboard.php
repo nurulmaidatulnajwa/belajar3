@@ -2,7 +2,6 @@
 include 'db.php';
 session_start();
 
-// Cek login
 if (!isset($_SESSION['id_karyawan'])) {
   header("Location:login.php");
   exit();
@@ -16,12 +15,16 @@ $total_produk = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total
 $total_orders = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM orders"))['total'] ?? 0;
 $total_karyawan = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM karyawan"))['total'] ?? 0;
 
-// Ambil produk terbaru
+// Produk terbaru
 $produk_terbaru = mysqli_query($conn, "SELECT * FROM produk ORDER BY tanggal_update DESC LIMIT 5");
 
-// Ambil data penjualan per bulan (grafik)
-$penjualan_data = array_fill(1, 12, 0); // isi default 0 untuk 12 bulan
-$query_penjualan = mysqli_query($conn, "SELECT MONTH(tanggal) AS bulan, SUM(total_harga) AS total FROM penjualan GROUP BY MONTH(tanggal)");
+// Data penjualan per bulan
+$penjualan_data = array_fill(1, 12, 0);
+$query_penjualan = mysqli_query($conn, "
+  SELECT MONTH(tanggal) AS bulan, SUM(jumlah * harga_per_item) AS total 
+  FROM orders 
+  GROUP BY MONTH(tanggal)
+");
 while ($row = mysqli_fetch_assoc($query_penjualan)) {
   $penjualan_data[(int)$row['bulan']] = (int)$row['total'];
 }
@@ -34,35 +37,47 @@ while ($row = mysqli_fetch_assoc($query_penjualan)) {
   <title>Dashboard - MiNa Techno Solution</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      background: #f4f6f9;
       margin: 0;
       display: flex;
+      color: #333;
+      background: linear-gradient(135deg, #cfd9df 0%, #e2ebf0 100%);
+      background-attachment: fixed;
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.3) 0, transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(255,255,255,0.25) 0, transparent 40%);
     }
 
     .main-content {
-      margin-left: 250px;
+      margin-left: 260px;
       padding: 40px;
-      width: calc(100% - 250px);
+      width: calc(100% - 260px);
+      animation: fadeIn 0.7s ease;
     }
 
-    /* HEADER */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* === HEADER === */
     .header-box {
-      background: white;
-      border-radius: 12px;
-      padding: 25px 30px;
+      background: linear-gradient(90deg, #4e69a3ff, #5c85a6ff);
+      border-radius: 15px;
+      padding: 25px;
       margin-bottom: 30px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      color: white;
     }
 
     .header-left h1 {
       margin: 0;
-      color: #007bff;
       font-size: 34px;
       font-weight: 700;
       line-height: 1.2;
@@ -70,127 +85,199 @@ while ($row = mysqli_fetch_assoc($query_penjualan)) {
 
     .header-left p {
       margin-top: 8px;
-      color: #555;
       font-size: 14px;
       font-weight: 400;
+      color: #f0f0f0;
     }
 
-    .logout-btn {
-      background-color: #dc3545;
+    /* === USER PROFILE DROPDOWN === */
+    .user-profile {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .user-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #fff;
+      padding: 5px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      transition: transform 0.2s ease;
+    }
+
+    .user-icon:hover { transform: scale(1.05); }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: calc(100% + 12px);
+      background: #fff;
+      min-width: 180px;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+      padding: 12px;
+      z-index: 9999;
+      text-align: center;
+    }
+
+    .dropdown-content p {
+      margin: 6px 0;
+      color: #222;
+    }
+
+    .dropdown-content .logout-btn {
+      display: inline-block;
+      background-color: #ff416c;
       color: white;
-      padding: 10px 18px;
-      border-radius: 8px;
+      padding: 7px 14px;
       text-decoration: none;
-      font-weight: bold;
-      transition: 0.3s;
+      border-radius: 8px;
+      margin-top: 10px;
+      font-weight: 500;
+      font-size: 0.9em;
     }
 
-    .logout-btn:hover {
-      background-color: #c82333;
+    .dropdown-content .logout-btn:hover {
+      background-color: #d93b56;
     }
 
-    /* CARD */
+    .dropdown-show {
+      display: block !important;
+    }
+
+    /* === CARDS === */
     .cards {
       display: flex;
       justify-content: space-between;
       gap: 20px;
       margin-bottom: 30px;
+      flex-wrap: wrap;
     }
 
     .card {
-      background: white;
-      border-radius: 12px;
-      padding: 25px;
       flex: 1;
+      min-width: 200px;
+      background: linear-gradient(145deg, #ffffff, #e9eff8);
+      border-radius: 15px;
+      padding: 25px;
       text-align: center;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-      transition: transform 0.2s;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      border-top: 4px solid #5b86e5;
+      transition: transform 0.3s, box-shadow 0.3s;
     }
 
     .card:hover {
       transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(91,134,229,0.3);
     }
 
     .card h3 {
       margin: 0;
-      color: #333;
+      color: #2f4873;
       font-size: 18px;
     }
 
     .card p {
-      font-size: 26px;
+      font-size: 28px;
       font-weight: bold;
-      color: #007bff;
+      color: #1d2d50;
       margin-top: 10px;
     }
 
-    /* GRAFIK */
+    /* === CHART === */
     .chart-container {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      background: rgba(255,255,255,0.9);
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
       margin-bottom: 30px;
+      border-left: 6px solid #5b86e5;
     }
 
     .chart-container h2 {
       margin-bottom: 15px;
-      color: #007bff;
+      color: #2f4873;
       font-size: 22px;
     }
 
-    /* PRODUK TERBARU */
+    /* === PRODUK TERBARU === */
     .produk-terbaru {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      background: rgba(255,255,255,0.9);
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      border-left: 6px solid #5b86e5;
     }
 
     .produk-terbaru h2 {
       margin-bottom: 15px;
-      color: #007bff;
+      color: #2f4873;
       font-size: 22px;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
     }
 
-    th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
+    thead th {
+      background: linear-gradient(90deg, #4e69a3ff, #5c85a6ff);
+      color: #fff;
+      font-weight: 600;
+      padding: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    tbody td {
+      padding: 14px;
       text-align: center;
+      border-bottom: 1px solid #e5e9f2;
+      color: #333;
     }
 
-    th {
-      background-color: #007bff;
-      color: white;
+    tbody tr:nth-child(even) {
+      background: #f5f8ff;
     }
 
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
+    tbody tr:hover {
+      background: #e3f2fd;
+      transition: all 0.3s ease;
     }
   </style>
 </head>
+
 <body>
 
   <?php include 'sidebar.php'; ?>
 
   <div class="main-content">
 
-    <!-- HEADER DENGAN NAMA KARYAWAN -->
     <div class="header-box">
       <div class="header-left">
         <h1>Dashboard</h1>
-        <p>Selamat datang, <strong><?= htmlspecialchars($nama_karyawan); ?></strong> 👋<br>
-        di <strong>Toko MiNa Techno</strong></p>
+        
       </div>
-      <a href="logout.php" class="logout-btn">Logout</a>
+
+      <!-- User Profile Dropdown -->
+      <div class="user-profile" id="userMenu">
+        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="User" class="user-icon" onclick="toggleDropdown()">
+        <div id="userDropdown" class="dropdown-content">
+          <p><strong><?= htmlspecialchars($nama_karyawan); ?></strong></p>
+          <p style="font-size: 0.9em; color: #888;"><?= htmlspecialchars($_SESSION['jabatan']); ?></p>
+          <a href="logout.php" class="logout-btn">Logout</a>
+        </div>
+      </div>
     </div>
 
-    <!-- KARTU RINGKASAN -->
     <div class="cards">
       <div class="card">
         <h3>Total Produk</h3>
@@ -206,58 +293,110 @@ while ($row = mysqli_fetch_assoc($query_penjualan)) {
       </div>
     </div>
 
-    <!-- GRAFIK PENJUALAN -->
     <div class="chart-container">
       <h2>Grafik Penjualan Bulanan</h2>
       <canvas id="salesChart"></canvas>
     </div>
 
-    <!-- PRODUK TERBARU -->
     <div class="produk-terbaru">
       <h2>Produk Terbaru</h2>
       <table>
-        <tr>
-          <th>ID</th>
-          <th>Nama Produk</th>
-          <th>Harga</th>
-          <th>Stok</th>
-          <th>Tanggal Update</th>
-        </tr>
-        <?php while ($row = mysqli_fetch_assoc($produk_terbaru)) { ?>
-        <tr>
-          <td><?= $row['id_produk'] ?></td>
-          <td><?= $row['nama_produk'] ?></td>
-          <td>Rp <?= number_format($row['harga'], 0, ',', '.') ?></td>
-          <td><?= $row['stok'] ?></td>
-          <td><?= $row['tanggal_update'] ?></td>
-        </tr>
-        <?php } ?>
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Nama Produk</th>
+            <th>Harga</th>
+            <th>Stok</th>
+            <th>Tanggal Update</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php 
+$no = 1; // mulai nomor dari 1
+while ($row = mysqli_fetch_assoc($produk_terbaru)) { 
+?>
+<tr>
+  <td><?= $no++; ?></td> <!-- nomor urut otomatis -->
+  <td><?= $row['nama_produk'] ?></td>
+  <td>Rp <?= number_format($row['harga'], 0, ',', '.') ?></td>
+  <td><?= $row['stok'] ?></td>
+  <td><?= date("d-m-Y", strtotime($row['tanggal_update'])); ?></td>
+</tr>
+<?php } ?>
+
+        </tbody>
       </table>
     </div>
-
   </div>
 
-  <!-- GRAFIK PENJUALAN SCRIPT -->
   <script>
+  // === Dropdown Function ===
+  function toggleDropdown() {
+    const dd = document.getElementById('userDropdown');
+    dd.classList.toggle('dropdown-show');
+  }
+
+  // Tutup dropdown kalau klik di luar
+  window.addEventListener('click', function(e) {
+    const menu = document.getElementById('userMenu');
+    const dd = document.getElementById('userDropdown');
+    if (!menu.contains(e.target)) {
+      dd.classList.remove('dropdown-show');
+    }
+  });
+
+  // === Chart.js ===
   const ctx = document.getElementById('salesChart').getContext('2d');
-  const chart = new Chart(ctx, {
-    type: 'bar',
+  new Chart(ctx, {
     data: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
-      datasets: [{
-        label: 'Penjualan (Rp)',
-        data: [<?= implode(',', $penjualan_data) ?>],
-        backgroundColor: 'rgba(0, 102, 255, 0.9)',
-      }]
+      labels: ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'],
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Penjualan (Rp)',
+          data: [<?= implode(',', $penjualan_data) ?>],
+          backgroundColor: 'rgba(91,134,229,0.8)',
+          borderRadius: 6,
+          yAxisID: 'y',
+        },
+        {
+          type: 'line',
+          label: 'Tren Penjualan',
+          data: [<?= implode(',', $penjualan_data) ?>],
+          borderColor: '#ff4b2b',
+          backgroundColor: 'rgba(255,75,43,0.15)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#ff4b2b',
+          pointRadius: 5,
+          borderWidth: 3,
+          yAxisID: 'y',
+        }
+      ]
     },
     options: {
       responsive: true,
       scales: {
-        y: { beginAtZero: true }
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Total Penjualan (Rp)' }
+        }
+      },
+      plugins: {
+        legend: {
+          display: true,
+          labels: { font: { size: 13, family: 'Poppins' } }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return 'Rp ' + context.formattedValue.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            }
+          }
+        }
       }
     }
   });
   </script>
-
 </body>
 </html>
